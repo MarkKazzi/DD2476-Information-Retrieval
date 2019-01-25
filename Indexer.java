@@ -1,9 +1,9 @@
-/*  
+/*
  *   This file is part of the computer assignment for the
  *   Information Retrieval course at KTH.
- * 
+ *
  *   Johan Boye, 2017
- */  
+ */
 
 package ir;
 
@@ -45,8 +45,6 @@ public class Indexer {
     private int generateDocID() {
         return lastDocID++;
     }
-
-
 
     /**
      *  Tokenizes and indexes the file @code{f}. If <code>f</code> is a directory,
@@ -100,4 +98,3 @@ public class Indexer {
             kgIndex.insert(token);
     }
 }
-

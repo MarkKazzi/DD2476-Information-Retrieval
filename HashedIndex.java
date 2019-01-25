@@ -34,7 +34,7 @@ public class HashedIndex implements Index {
 	if(!index.containsKey(token)){index.put(token, new PostingsList());}
 
 	//add new entry
-	index.get(token).insert(docID, 1.0);
+	index.get(token).insert(docID, 1.0, offset);
     }
 
 

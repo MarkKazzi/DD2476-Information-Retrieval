@@ -29,11 +29,12 @@ public class PostingsList {
     //  YOUR CODE HERE
     //
 
-    public void insert(int docID, double score){
+    public void insert(int docID, double score, int offset){
       boolean contained = false;
         for(PostingsEntry entry: list){
         if(entry.docID == docID){
           contained = true;
+          entry.addOffset(offset);
           break;
         }
       }
@@ -42,7 +43,10 @@ public class PostingsList {
       if(!contained){
         PostingsEntry entry = new PostingsEntry(docID, score);
         list.add(entry);
+        entry.addOffset(offset);
       }
+
+
     }
 
   /*    public void insert(int docID, double score){

@@ -32,34 +32,11 @@ public class Searcher {
      */
     public PostingsList search( Query query, QueryType queryType, RankingType rankingType ) {
 
-      if(query.queryterm.size() == 1){
-        String token = query.queryterm.get(0).term;
-        return index.getPostings(token);
-      }
-      else{
+      if(queryType == queryType.INTERSECTION_QUERY){return intersection_search(query);}
+      else if (queryType == queryType.PHRASE_QUERY){return phrase_search(query);}
+      else{return null;}
+    }
 
-        //terms = query.queryterm;
-        //while(i < terms.size()){
-
-        //PostingsList p1 = index.getPostings(query.queryterm.get(0).term);
-        //PostingsList p2 = index.getPostings(query.queryterm.get(1).term);
-        //ArrayList<PostingsList> terms = terms(query);
-        //PostingsList result = terms.get(0);
-        
-        ArrayList<PostingsList> terms = new ArrayList<PostingsList>();
-        for(int i=0; i<query.queryterm.size(); i++){
-          terms.add(index.getPostings(query.queryterm.get(i).term));
-        }
-
-        PostingsList result = new PostingsList();
-        result = terms.get(0);
-
-        for(int i = 1; i < terms.size(); i++){
-          result = intersect(result, terms.get(i));
-        }
-      return result;
-      }
-}
       public PostingsList intersect (PostingsList p1, PostingsList p2){
         int i = 0;
         int j = 0;
@@ -83,8 +60,77 @@ public class Searcher {
         return answer;
       }
 
+      public PostingsList intersection_search(Query query){
+        if(query.queryterm.size() == 1){
+          String token = query.queryterm.get(0).term;
+          return index.getPostings(token);
+        }
+        else{
+          ArrayList<PostingsList> terms = new ArrayList<PostingsList>();
+          for(int i=0; i<query.queryterm.size(); i++){
+            terms.add(index.getPostings(query.queryterm.get(i).term));
+          }
 
-      public ArrayList<PostingsList> terms(Query query) {
+          PostingsList result = new PostingsList();
+          result = terms.get(0);
+
+          for(int i = 1; i < terms.size(); i++){
+            result = intersect(result, terms.get(i));
+          }
+        return result;
+        }
+
+      }
+
+      public PostingsList phrase_search(Query query){
+
+        if(query.queryterm.size() == 1){
+          String token = query.queryterm.get(0).term;
+          return index.getPostings(token);
+        }
+        else{
+            ArrayList<PostingsList> terms = new ArrayList<PostingsList>();
+            for(int i=0; i<query.queryterm.size(); i++){
+              terms.add(index.getPostings(query.queryterm.get(i).term));
+            }
+
+            PostingsList result = new PostingsList();
+            result = terms.get(0);
+
+            for(int i = 1; i < terms.size(); i++){
+              result = intersect(result, terms.get(i));
+            }
+              //docIDs of all documents intersecting the query terms
+              ArrayList<Integer> commonDocs = new ArrayList<Integer>();
+              for(int i = 0; i < result.size(); i++){
+                commonDocs.add(result.get(i).docID);
+              }
+
+              for(int i = 0; i < commonDocs.size(); i++){
+                for(j = 0; j < query.queryterm.size(); j++){
+
+                  ArrayList<Integer> positions1 = index.getPostings(query.queryterm.get(j).term)).list.get(docID);
+                  ArrayList<Integer> positions2 = index.getPostings(query.queryterm.get(j+1).term)).list.get(docID);
+
+                  if(phrase(positions1, positions2)){
+                    j++;
+                  }
+                }
+
+              }
+
+          }
+
+          return null;
+        }
+
+        public boolean phrase(ArrayList<Integer> positions1, ArrayList<Integer> position2){
+
+        }
+
+
+/*
+     public ArrayList<PostingsList> terms(Query query) {
         ArrayList<PostingsList> sortedTerms = new ArrayList<PostingsList>();
         sortedTerms.add(index.getPostings(query.queryterm.get(0).term));
         for(int i=0; i < query.queryterm.size(); i++){
@@ -97,7 +143,7 @@ public class Searcher {
       }
 
         return sortedTerms;
-    }
+    }*/
 
 
 
