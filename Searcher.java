@@ -37,29 +37,6 @@ public class Searcher {
       else{return null;}
     }
 
-      public PostingsList intersect (PostingsList p1, PostingsList p2){
-        int i = 0;
-        int j = 0;
-        PostingsList answer = new PostingsList();
-        ArrayList<PostingsEntry> list1 = p1.list;
-        ArrayList<PostingsEntry> list2 = p2.list;
-
-        while((i < list1.size()) && (j < list2.size())){
-            PostingsEntry entry1 = list1.get(i);
-            PostingsEntry entry2 = list2.get(j);
-            if(entry1.docID == entry2.docID){
-              answer.list.add(entry1);
-              i++;
-              j++;
-            }
-            else if(entry1.docID < entry2.docID){
-              i++;
-            }
-            else{j++;}
-        }
-        return answer;
-      }
-
       public PostingsList intersection_search(Query query){
         if(query.queryterm.size() == 1){
           String token = query.queryterm.get(0).term;
@@ -89,6 +66,8 @@ public class Searcher {
           return index.getPostings(token);
         }
         else{
+            PostingsList answer = new PostingsList();
+
             ArrayList<PostingsList> terms = new ArrayList<PostingsList>();
             for(int i=0; i<query.queryterm.size(); i++){
               terms.add(index.getPostings(query.queryterm.get(i).term));
@@ -102,49 +81,87 @@ public class Searcher {
             }
               //docIDs of all documents intersecting the query terms
               ArrayList<Integer> commonDocs = new ArrayList<Integer>();
-              for(int i = 0; i < result.size(); i++){
+              for(int i = 0; i < result.list.size(); i++){
                 commonDocs.add(result.get(i).docID);
               }
 
+
+
               for(int i = 0; i < commonDocs.size(); i++){
-                for(j = 0; j < query.queryterm.size(); j++){
+                int docID = commonDocs.get(i);
+                int posInOffset1 = 0;
+                int posInOffset2 = 0;
 
-                  ArrayList<Integer> positions1 = index.getPostings(query.queryterm.get(j).term)).list.get(docID);
-                  ArrayList<Integer> positions2 = index.getPostings(query.queryterm.get(j+1).term)).list.get(docID);
+                boolean consistentFind = true;
 
-                  if(phrase(positions1, positions2)){
-                    j++;
+                for(int j = 0; j < query.queryterm.size() -1; j++){
+                  for(int k = 0; k < index.getPostings(query.queryterm.get(j).term).list.size(); k++ ){
+                    if(index.getPostings(query.queryterm.get(j).term).list.get(k).docID == docID){
+                        posInOffset1 = k;
+                    }
+                  }
+                  for(int k = 0; k < index.getPostings(query.queryterm.get(j+1).term).list.size(); k++ ){
+                    if(index.getPostings(query.queryterm.get(j+1).term).list.get(k).docID == docID){
+                        posInOffset2 = k;
+                    }
+                  }
+                  ArrayList<Integer> positions1 = index.getPostings(query.queryterm.get(j).term).list.get(posInOffset1).positions;
+                  ArrayList<Integer> positions2 = index.getPostings(query.queryterm.get(j+1).term).list.get(posInOffset2).positions;
+
+                  if(!phrase_find(positions1, positions2)){
+                    consistentFind = false;
+                    break;
                   }
                 }
+                if(consistentFind){
+                  answer.list.add(result.get(i));
 
+                }
+                else{
+                  consistentFind = true;
+                }
               }
-
-          }
-
-          return null;
-        }
-
-        public boolean phrase(ArrayList<Integer> positions1, ArrayList<Integer> position2){
-
-        }
-
-
-/*
-     public ArrayList<PostingsList> terms(Query query) {
-        ArrayList<PostingsList> sortedTerms = new ArrayList<PostingsList>();
-        sortedTerms.add(index.getPostings(query.queryterm.get(0).term));
-        for(int i=0; i < query.queryterm.size(); i++){
-          for(int j =0; j< sortedTerms.size(); j++){
-            if(index.getPostings(query.queryterm.get(i).term).size() < index.getPostings(query.queryterm.get(j).term).size()){
-          sortedTerms.add(j, index.getPostings(query.queryterm.get(i).term));
-          sortedTerms.add(j+1, index.getPostings(query.queryterm.get(j).term));
+              return answer;
           }
         }
-      }
 
-        return sortedTerms;
-    }*/
+        public PostingsList intersect (PostingsList p1, PostingsList p2){
+          int i = 0;
+          int j = 0;
+          PostingsList answer = new PostingsList();
+          ArrayList<PostingsEntry> list1 = p1.list;
+          ArrayList<PostingsEntry> list2 = p2.list;
 
+          while((i < list1.size()) && (j < list2.size())){
+              PostingsEntry entry1 = list1.get(i);
+              PostingsEntry entry2 = list2.get(j);
+              if(entry1.docID == entry2.docID){
+                answer.list.add(entry1);
+                i++;
+                j++;
+              }
+              else if(entry1.docID < entry2.docID){
+                i++;
+              }
+              else{j++;}
+          }
+          return answer;
+        }
 
+        public boolean phrase_find(ArrayList<Integer> positions1, ArrayList<Integer> positions2){
+          boolean phraseFound = false;
 
+          for(int i = 0; i < positions1.size(); i++){
+            for(int j = 0; j < positions2.size(); j++){
+              if((positions2.get(j) - positions1.get(i)) > 1){break;}
+              if((positions2.get(j)-positions1.get(i)) == 1 )
+              {
+                phraseFound = true;
+                break;
+              }
+              if(phraseFound){break;}
+            }
+          }
+            return phraseFound;
+        }
 }
