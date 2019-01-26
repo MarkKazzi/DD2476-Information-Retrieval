@@ -93,6 +93,7 @@ public class Searcher {
                 int posInOffset2 = 0;
 
                 boolean consistentFind = true;
+                ArrayList<Integer> input = new ArrayList<Integer>();
 
                 for(int j = 0; j < query.queryterm.size() -1; j++){
                   for(int k = 0; k < index.getPostings(query.queryterm.get(j).term).list.size(); k++ ){
@@ -108,10 +109,15 @@ public class Searcher {
                   ArrayList<Integer> positions1 = index.getPostings(query.queryterm.get(j).term).list.get(posInOffset1).positions;
                   ArrayList<Integer> positions2 = index.getPostings(query.queryterm.get(j+1).term).list.get(posInOffset2).positions;
 
-                  if(!phrase_find(positions1, positions2)){
+                  if(j == 0){
+                    input = positions1;
+                  }
+                  input = phrase_find(input, positions2);
+                  if(input.isEmpty()){
                     consistentFind = false;
                     break;
                   }
+
                 }
                 if(consistentFind){
                   answer.list.add(result.get(i));
@@ -148,20 +154,18 @@ public class Searcher {
           return answer;
         }
 
-        public boolean phrase_find(ArrayList<Integer> positions1, ArrayList<Integer> positions2){
-          boolean phraseFound = false;
+        public ArrayList<Integer> phrase_find(ArrayList<Integer> positions1, ArrayList<Integer> positions2){
+          ArrayList<Integer> previousPositions = new ArrayList<Integer>();
 
           for(int i = 0; i < positions1.size(); i++){
             for(int j = 0; j < positions2.size(); j++){
               if((positions2.get(j) - positions1.get(i)) > 1){break;}
               if((positions2.get(j)-positions1.get(i)) == 1 )
               {
-                phraseFound = true;
-                break;
+                  previousPositions.add(j);
               }
-              if(phraseFound){break;}
             }
           }
-            return phraseFound;
+            return previousPositions;
         }
 }
