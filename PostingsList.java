@@ -14,6 +14,8 @@ public class PostingsList {
     /** The postings list */
     public ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
 
+    public ArrayList<Integer> containedDocs = new ArrayList<Integer>();
+
 
     /** Number of postings in this list. */
     public int size() {
@@ -25,36 +27,17 @@ public class PostingsList {
     return list.get( i );
     }
 
-    //
-    //  YOUR CODE HERE
-    //
-
     public void insert(int docID, double score, int offset){
-      boolean contained = false;
-        for(PostingsEntry entry: list){
-        if(entry.docID == docID){
-          contained = true;
+        if(containedDocs.contains(docID)){  //O(n), do better?
+          int i = containedDocs.indexOf(docID);
+          PostingsEntry entry = list.get(i);
           entry.addOffset(offset);
-          break;
         }
-      }
-
-
-      if(!contained){
-        PostingsEntry entry = new PostingsEntry(docID, score);
-        list.add(entry);
-        entry.addOffset(offset);
-      }
-
-
+        else{
+          PostingsEntry entry = new PostingsEntry(docID, score);
+          list.add(entry);
+          entry.addOffset(offset);
+          containedDocs.add(docID);
+        }
     }
-
-  /*    public void insert(int docID, double score){
-        if(!list.isEmpty()){
-          if(list.get(list.size()-1).docID < docID){
-            PostingsEntry entry = new PostingsEntry(docID, score);
-            list.add(entry);
-          }
-        }
-    }*/
 }

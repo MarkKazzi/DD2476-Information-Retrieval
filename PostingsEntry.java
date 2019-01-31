@@ -28,12 +28,7 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     public int compareTo( PostingsEntry other ) {
        return Double.compare( other.score, score );
     }
-
-
-    //
-    // YOUR CODE HERE
-    //
-
+    
     //constructor
     public PostingsEntry(int docID, double score){
     	 this.docID = docID;
