@@ -129,9 +129,11 @@ public class PersistentHashedIndex implements Index {
      */
     String readData( long ptr, int size ) {
         try {
+            //dataFile = new RandomAccessFile( INDEXDIR + "/" + DATA_FNAME, "rw" );
             dataFile.seek( ptr );
             byte[] data = new byte[size];
             dataFile.readFully( data );
+            //dataFile.close();
             return new String(data);
         }  catch ( IOException e ) {
             e.printStackTrace();
@@ -155,8 +157,8 @@ public class PersistentHashedIndex implements Index {
        try {
             String rev = new StringBuilder(entry.term).reverse().toString();
             long h2 = hash(rev);
-            h2 = (h2%900);
-           dictionaryFile.seek(hash*1000 + h2);
+            h2 = (h2%90);
+           dictionaryFile.seek(hash*100 + h2);
            dictionaryFile.writeChar(entry.term.charAt(0));
            dictionaryFile.writeLong(entry.ptr);
            dictionaryFile.writeInt(entry.size);
@@ -175,14 +177,16 @@ public class PersistentHashedIndex implements Index {
     Entry readEntry(String term, long hash){
 
         try {
+          //dictionaryFile = new RandomAccessFile( INDEXDIR + "/" + DICTIONARY_FNAME, "rw" );
           String rev = new StringBuilder(term).reverse().toString();
           long h2 = hash(rev);
-          h2 = (h2%900);
-            dictionaryFile.seek(hash*1000 + h2);
+          h2 = (h2%90);
+            dictionaryFile.seek(hash*100 + h2);
             if(dictionaryFile.readChar() == (term.charAt(0))){
               long ptr = dictionaryFile.readLong();
               int size = dictionaryFile.readInt();
               Entry e = new Entry(ptr, size);
+              //dictionaryFile.close();
               return e;
             }
             else{return null;}
@@ -262,7 +266,8 @@ public class PersistentHashedIndex implements Index {
                 ptr += size;
             }
 
-            //closefiles();
+            //dataFile.close();
+            //dictionaryFile.close();
 
         }
         catch ( IOException e ) {
@@ -322,7 +327,8 @@ public class PersistentHashedIndex implements Index {
   "Entry: [ [ int double [ int int int ] ] [ [ int double [ int int int ] ] [ [ int
   double [ int int int ] ]  "
   */
-  public String encode(PostingsList pl){
+
+/*  public String encode(PostingsList pl){
     StringBuilder sb = new StringBuilder();
     ArrayList<PostingsEntry> list = pl.list;
     ArrayList<Integer> containedDocs = pl.containedDocs;
@@ -388,25 +394,45 @@ public class PersistentHashedIndex implements Index {
       i++;
     }
     return pl;
-  }
+  } */
     /**
      *  Write index to file after indexing is done.
      */
+
+     public static String encode(PostingsList pl){
+       StringBuilder sb = new StringBuilder();
+       ArrayList<PostingsEntry> list = pl.list;
+       for(PostingsEntry entry: list){
+         sb.append(entry.docID);
+         for(int pos: entry.positions){
+           sb.append(":");
+           sb.append(pos);
+         }
+         sb.append(",");
+       }
+       return sb.toString();
+     }
+
+     public static PostingsList decode(String str){
+       //go through list and create objects
+       PostingsList pl = new PostingsList();
+
+       String[] split = str.split(",");
+       for(int i = 0; i < split.length; i++){
+         String[] e = split[i].split((":"));
+         PostingsEntry entry = new PostingsEntry(Integer.parseInt(e[0]), 0.0);
+         for(int j = 1; j < e.length -1; j ++){
+           entry.positions.add(Integer.parseInt(e[j]));
+         }
+         pl.list.add(entry);
+       }
+       return pl;
+     }
+
     public void cleanup() {
         System.err.println( index.keySet().size() + " unique words" );
         System.err.print( "Writing index to disk..." );
         writeIndex();
         System.err.println( "done!" );
-    }
-
-    public void closefiles(){
-      try {
-        dataFile.close();
-        dictionaryFile.close();
-        dictionaryFile = new RandomAccessFile( INDEXDIR + "/" + DICTIONARY_FNAME, "r" );
-        dataFile = new RandomAccessFile( INDEXDIR + "/" + DATA_FNAME, "r" );
-      } catch ( IOException e ) {
-          e.printStackTrace();
-      }
     }
 }
