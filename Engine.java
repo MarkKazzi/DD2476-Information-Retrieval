@@ -1,7 +1,7 @@
-/*  
+/*
  *   This file is part of the computer assignment for the
  *   Information Retrieval course at KTH.
- * 
+ *
  *   Johan Boye, 2017
  */
 
@@ -16,8 +16,8 @@ import java.io.File;
 public class Engine {
 
     /** The inverted index. */
-    Index index = new HashedIndex();
-    //Index index = new PersistentHashedIndex();
+    //Index index = new HashedIndex();
+    Index index = new PersistentHashedIndex();
 
     /** The indexer creating the search index. */
     Indexer indexer;
@@ -56,8 +56,8 @@ public class Engine {
     /* ----------------------------------------------- */
 
 
-    /**  
-     *   Constructor. 
+    /**
+     *   Constructor.
      *   Indexes all chosen directories and files
      */
     public Engine( String[] args ) {
@@ -66,10 +66,10 @@ public class Engine {
         searcher = new Searcher( index, kgIndex );
         gui = new SearchGUI( this );
         gui.init();
-        /* 
+        /*
          *   Calls the indexer to index the chosen directory structure.
-         *   Access to the index is synchronized since we don't want to 
-         *   search at the same time we're indexing new files (this might 
+         *   Access to the index is synchronized since we don't want to
+         *   search at the same time we're indexing new files (this might
          *   corrupt the index).
          */
         if (is_indexing) {
@@ -125,7 +125,7 @@ public class Engine {
                 System.err.println( "Unknown option: " + args[i] );
                 break;
             }
-        }                   
+        }
     }
 
 
@@ -134,7 +134,8 @@ public class Engine {
 
     public static void main( String[] args ) {
         Engine e = new Engine( args );
+
+
     }
 
 }
-
